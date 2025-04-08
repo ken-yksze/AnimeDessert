@@ -21,7 +21,14 @@
         // All images for this dessert
         public IEnumerable<ImageDto>? DessertImages { get; set; }
 
+        // All characters
+        // ListCharacters()
+        public IEnumerable<CharacterDto>? AllCharacters { get; set; }
+
         // The character associated with this dessert
         public CharacterDto? DessertCharacter { get; set; }
+
+        public IEnumerable<CharacterVersionDto>? CharacterVersionDtos { get; set; }
+        public ImageDto? FirstCharacterImage { get; set; }
     }
 }

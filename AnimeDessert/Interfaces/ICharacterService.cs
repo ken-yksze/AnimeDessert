@@ -21,5 +21,7 @@ namespace AnimeDessert.Interfaces
         Task<ServiceResponse> RemoveVersionsFromCharacter(int id, RemoveVersionsFromCharacterRequest request);
 
         Task<IEnumerable<DessertDto>> ListDessertsForCharacter(int id);
+        Task<ServiceResponse> LinkCharacterToDessert(int characterId, int dessertId);
+        Task<ServiceResponse> UnlinkCharacterFromDessert(int characterId, int dessertId);
     }
 }

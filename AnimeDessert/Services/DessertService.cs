@@ -28,6 +28,7 @@ namespace AnimeDessert.Services
                     DessertDescription = d.DessertDescription,
                     SpecificTag = d.SpecificTag,
                     Images = d.Images!.OrderBy(i => i.ImageId).Take(1).ToList()
+
                 })
                 .ToListAsync();
 
@@ -456,5 +457,7 @@ namespace AnimeDessert.Services
             response.Messages.Add($"{affectedRecordsNumber} records are affected.");
             return response;
         }
+
+        
     }
 }

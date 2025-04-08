@@ -5,13 +5,14 @@
 }
 
 <h1 style="text-align: center; color: #4CAF50; font-family: Arial, sans-serif;">Edit Dessert</h1>
-
 <h4 style="text-align: center; font-size: 20px; color: #333;">Modify Dessert Details</h4>
 <hr style="border: 1px solid #ddd;" />
 
 <div class="row" style="display: flex; justify-content: center;">
     <div class="col-md-4"
          style="width: 100%; max-width: 400px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+
+        <!-- Main Update Form -->
         <form asp-action="Update" asp-route-id="@Model.Dessert.DessertId">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Dessert.DessertId" />
@@ -37,11 +38,63 @@
                 <span asp-validation-for="Dessert.SpecificTag" class="text-danger"></span>
             </div>
 
-            <div class="form-group" style="text-align: center; margin-top: 20px;">
-                <input type="submit" value="Save" class="btn btn-primary"
-                       style="background-color: #4CAF50; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;" />
-            </div>
+            <button type="submit" class="btn btn-primary">Update Dessert</button>
         </form>
+
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight: bold;">Character:</label>
+            <div style="padding: 8px; background: #fff; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                @if (Model.DessertCharacter != null)
+                {
+                    <div style="display: flex; align-items: center;">
+                        <a href="/CharacterPage/Details/@Model.DessertCharacter.CharacterId"
+                           style="color: #2196F3; text-decoration: none; font-weight: bold; margin-right: 10px;">
+                            @Model.DessertCharacter.CharacterName
+                        </a>
+
+                        @if (Model.FirstCharacterImage != null)
+                        {
+                            <img src="@Model.FirstCharacterImage.ImagePath"
+                                 alt="Character Image"
+                                 title="@Model.DessertCharacter?.CharacterName"
+                                 style="height: 40px; width: auto; border-radius: 5px;" />
+                        }
+                       
+                           
+                        
+
+                        <!-- Unlink Character Form -->
+                        <form method="POST" action="/DessertPage/UnlinkFromCharacter" style="display:inline;">
+                            <input type="hidden" name="dessertId" value="@Model.Dessert.DessertId" />
+                            <input type="hidden" name="characterId" value="@Model.DessertCharacter.CharacterId" />
+                            <button type="submit" title="Unlink Character"
+                                    style="background: none; border: none; color: #f44336; font-size: 18px; cursor: pointer;">
+                                ✕
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <!-- Link Character Form -->
+                    <form method="POST" action="/DessertPage/LinkToCharacter" style="display:inline;">
+                        <input type="hidden" name="dessertId" value="@Model.Dessert.DessertId" />
+                        <select name="characterId" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+                            <option value="">Select a character</option>
+                            @foreach (var character in Model.AllCharacters ?? [])
+                            {
+                                <option value="@character.CharacterId">@character.CharacterName</option>
+                            }
+                        </select>
+                        <input type="submit" value="Link Character"
+                               style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;" />
+                    </form>
+                }
+            </div>
+
+            
+            
+        </div>
     </div>
 </div>
 

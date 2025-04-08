@@ -1,5 +1,6 @@
 ﻿using AnimeDessert.Interfaces;
 using AnimeDessert.Models;
+using AnimeDessert.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -283,5 +284,81 @@ namespace AnimeDessert.Controllers
             IEnumerable<DessertDto> dessertDtos = await _characterService.ListDessertsForCharacter(id);
             return Ok(dessertDtos);
         }
+
+        /// <summary>
+        /// Links a character to a dessert
+        /// </summary>
+        /// <param name="dessertId">The id of the dessert</param>
+        /// <param name="characterId">The id of the character</param>
+        /// <returns>
+        /// 204 No Content
+        /// or
+        /// 302 Redirect (/Identity/Account/Login)
+        /// or
+        /// 404 Not Found
+        /// </returns>
+        /// <example>
+        /// Post: api/Character/Link?DessertId=4&CharacterId=1
+        /// Headers: cookie: .AspNetCore.Identity.Application={token}
+        /// ->
+        /// Response Code: 204 No Content
+        /// </example>
+        [HttpPost("Link")]
+        [Authorize]
+        public async Task<ActionResult> LinkCharacter(int characterId, int dessertId)
+        {
+            ServiceResponse response = await _characterService.LinkCharacterToDessert(characterId, dessertId);
+
+            if (response.Status == ServiceStatus.NotFound)
+            {
+                return NotFound();
+            }
+            else if (response.Status == ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages);
+            }
+
+            return NoContent();
+
+        }
+
+        /// <summary>
+        /// Unlinks a character from a dessert
+        /// </summary>
+        /// <param name="dessertId">The id of the dessert</param>
+        /// <param name="characterId">The id of the character</param>
+        /// <returns>
+        /// 204 No Content
+        /// or
+        /// 302 Redirect (/Identity/Account/Login)
+        /// or
+        /// 404 Not Found
+        /// </returns>
+        /// <example>
+        /// Delete: api/Character/Unlink?DessertId=4&CharacterId=1
+        /// Headers: cookie: .AspNetCore.Identity.Application={token}
+        /// ->
+        /// Response Code: 204 No Content
+        /// </example>
+        [HttpDelete("Unlink")]
+        [Authorize]
+        public async Task<ActionResult> UnlinkCharacter(int characterId, int dessertId)
+        {
+            ServiceResponse response = await _characterService.UnlinkCharacterFromDessert(characterId, dessertId);
+
+            if (response.Status == ServiceStatus.NotFound)
+            {
+                return NotFound();
+            }
+            else if (response.Status == ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages);
+            }
+
+            return NoContent();
+
+        }
+
+
     }
 }

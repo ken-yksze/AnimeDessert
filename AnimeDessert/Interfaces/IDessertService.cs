@@ -21,5 +21,7 @@ namespace AnimeDessert.Interfaces
         Task<ServiceResponse> AddImagesToDessert(int id, AddImagesToDessertRequest request);
 
         Task<ServiceResponse> RemoveImagesFromDessert(int id, RemoveImagesFromDessertRequest request);
+        
+
     }
 }

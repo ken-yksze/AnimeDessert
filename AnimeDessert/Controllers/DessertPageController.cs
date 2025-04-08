@@ -55,8 +55,20 @@ namespace AnimeDessert.Controllers
             {
                 return View("Error", new ErrorViewModel() { Errors = ["Could not find dessert"] });
             }
-            else
+            CharacterDto? characterDto = null;
+            IEnumerable<CharacterVersionDto>? characterVersions = null;
+            ImageDto? firstCharacterImage = null;
+
+            if (DessertDto.CharacterId != null)
             {
+                characterDto = await _characterService.FindCharacter((int)DessertDto.CharacterId);
+                characterVersions = characterDto?.CharacterVersionDtos;
+                firstCharacterImage = characterDto?.CharacterVersionDtos?
+                .FirstOrDefault()?
+                .ImageDtos?
+                .FirstOrDefault();
+            }
+       
                 // information which drives a dessert page
                 DessertDetails DessertInfo = new DessertDetails()
                 {
@@ -66,11 +78,13 @@ namespace AnimeDessert.Controllers
                     DessertReviews = AssociatedReviews,
                     DessertInstructions = Instructions,
                     DessertImages = Images,
-                    DessertCharacter = DessertDto.CharacterId == null ? null : await _characterService.FindCharacter((int)DessertDto.CharacterId)
+                    DessertCharacter = DessertDto.CharacterId == null ? null : await _characterService.FindCharacter((int)DessertDto.CharacterId),
+                    CharacterVersionDtos = characterVersions,
+                    FirstCharacterImage = firstCharacterImage
                 };
                 return View(DessertInfo);
             }
-        }
+        
         // GET DessertPage/New
         [Authorize]
         public ActionResult New()
@@ -108,12 +122,33 @@ namespace AnimeDessert.Controllers
             }
             else
             {
+                var allCharacters = await _characterService.ListCharacters(); // Ensure this method exists
                 // information which drives a dessert page
+                var characterDto = DessertDto.CharacterId.HasValue
+            ? await _characterService.FindCharacter(DessertDto.CharacterId.Value)
+            : null;
+
+                IEnumerable<CharacterVersionDto>? characterVersions = null;
+                ImageDto? firstCharacterImage = null;
+
+                if (characterDto != null)
+                {
+                    // Get the character versions
+                    characterVersions = characterDto.CharacterVersionDtos;
+                    // Get the first image from the first version
+                    firstCharacterImage = characterDto.CharacterVersionDtos?.FirstOrDefault()?
+                        .ImageDtos?.FirstOrDefault();
+                }
+
                 DessertDetails DessertInfo = new DessertDetails()
                 {
                     Dessert = DessertDto,
-                    DessertCharacter = DessertDto.CharacterId == null ? null : await _characterService.FindCharacter((int)DessertDto.CharacterId)
+                    DessertCharacter = characterDto, // Still set this if you use it elsewhere
+                    AllCharacters = allCharacters,
+                    CharacterVersionDtos = characterVersions,
+                    FirstCharacterImage = firstCharacterImage
                 };
+
 
                 return View(DessertInfo);
             }
@@ -226,5 +261,47 @@ namespace AnimeDessert.Controllers
                 ? RedirectToAction("Details", "DessertPage", new { id = id })
                 : View("Error", new ErrorViewModel() { Errors = response.Messages });
         }
+
+        //POST DessertPage/LinkToCharacter
+        //DATA: characterId={characterId}&dessertId={dessertId}
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> LinkToCharacter([FromForm] int dessertId, [FromForm] int characterId)
+        {
+            await _characterService.LinkCharacterToDessert(characterId, dessertId);
+
+            return RedirectToAction("Edit", new { id = dessertId });
+        }
+
+        //POST DessertPage/UnlinkFromCharacter
+        //DATA: characterId={characterId}&dessertId={dessertId}
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UnlinkFromCharacter([FromForm] int dessertId, [FromForm] int characterId)
+        {
+            await _characterService.UnlinkCharacterFromDessert(characterId, dessertId);
+
+            return RedirectToAction("Edit", new { id = dessertId });
+        }
+
+        //// POST DessertPage/LinkToCharacter
+        //[HttpPost]
+        //[Authorize]
+        //public async Task<IActionResult> LinkToCharacter([FromForm] int dessertId, [FromForm] int characterId)
+        //{
+        //    await _characterService.LinkCharacterToDessert(characterId, dessertId);
+        //    return Json(new { success = true, characterId = characterId });
+        //}
+
+        //// POST DessertPage/UnlinkFromCharacter
+        //[HttpPost]
+        //[Authorize]
+        //public async Task<IActionResult> UnlinkFromCharacter([FromForm] int dessertId, [FromForm] int characterId)
+        //{
+        //    await _characterService.UnlinkCharacterFromDessert(characterId, dessertId);
+        //    return Json(new { success = true });
+        //}
+
+
     }
 }

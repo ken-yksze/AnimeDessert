@@ -552,5 +552,103 @@ namespace AnimeDessert.Services
 
             return dessertDtos;
         }
+
+        public async Task<ServiceResponse> LinkCharacterToDessert(int characterId, int dessertId)
+        {
+            ServiceResponse serviceResponse = new();
+
+            Character? character = await _context.Characters
+                .Include(c => c.Desserts)
+                .Where(c => c.CharacterId == characterId)
+                .FirstOrDefaultAsync();
+
+            Dessert? dessert = await _context.Desserts.FindAsync(dessertId);
+
+            // Data must link to a valid entity
+            if (dessert == null || character == null)
+            {
+                serviceResponse.Status = ServiceStatus.NotFound;
+
+                if (dessert == null)
+                {
+                    serviceResponse.Messages.Add("Dessert was not found.");
+                }
+
+                if (character == null)
+                {
+                    serviceResponse.Messages.Add("Character was not found.");
+                }
+
+                return serviceResponse;
+            }
+
+            try
+            {
+                character.Desserts!.Add(dessert);
+                dessert.Character = character;
+                dessert.CharacterId = characterId;
+                _context.SaveChanges();
+            }
+            catch (Exception Ex)
+            {
+                serviceResponse.Messages.Add("There was an issue linking the dessert to the character");
+                serviceResponse.Messages.Add(Ex.Message);
+                serviceResponse.Status = ServiceStatus.Error; 
+                return serviceResponse;
+            }
+
+            serviceResponse.Status = ServiceStatus.Created;
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse> UnlinkCharacterFromDessert(int characterId, int dessertId)
+        {
+            ServiceResponse serviceResponse = new();
+
+            Character? character = await _context.Characters
+                .Include(c => c.Desserts)
+                .Where(c => c.CharacterId == characterId)
+                .FirstOrDefaultAsync();
+
+            Dessert? dessert = await _context.Desserts.FindAsync(dessertId);
+
+            // Data must link to a valid entity
+            if (dessert == null || character == null)
+            {
+                serviceResponse.Status = ServiceStatus.NotFound;
+
+                if (dessert == null)
+                {
+                    serviceResponse.Messages.Add("Dessert was not found. ");
+                }
+
+                if (character == null)
+                {
+                    serviceResponse.Messages.Add("Character was not found.");
+                }
+
+                return serviceResponse;
+            }
+
+            try
+            {
+                character.Desserts!.Remove(dessert);
+                dessert.Character = null; 
+                dessert.CharacterId = null;
+                _context.SaveChanges();
+            }
+            catch (Exception Ex)
+            {
+                serviceResponse.Messages.Add("There was an issue unlinking the dessert to the character");
+                serviceResponse.Messages.Add(Ex.Message);
+                serviceResponse.Status = ServiceStatus.Error; 
+                return serviceResponse;
+            }
+
+            serviceResponse.Status = ServiceStatus.Deleted;
+            return serviceResponse;
+        }
+
+      
     }
 }
